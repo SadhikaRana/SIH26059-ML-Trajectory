@@ -53,11 +53,11 @@ environmental:
   # data/raw/historical_iceberg_with_wind.csv. NaN elsewhere, never
   # imputed. current_u/current_v/sea_ice_concentration are set to null
   # below because no real source for them has been provided.
-  wind_u: "wind_u"
-  wind_v: "wind_v"
-  current_u: null
-  current_v: null
-  sea_ice_concentration: null
+ wind_u: "wind_u10_ms"
+ wind_v: "wind_v10_ms"
+ current_u: null
+ current_v: null
+ sea_ice_concentration: null
 
 iceberg_characteristics:
   area: "area"
