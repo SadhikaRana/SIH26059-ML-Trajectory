@@ -24,7 +24,7 @@ from src.data_loader import load_and_resolve
 from src.preprocessing import run_basic_preprocessing
 from src.trajectory_builder import add_lag_features, build_supervised_pairs
 from src.feature_engineering import engineer_features, get_model_feature_columns
-from src.train import prepare_training_table, train_horizon_models, TrainingError
+from src.train import prepare_training_table, train_horizon_models, save_model_bundle, TrainingError
 from src.evaluate import evaluate_by_horizon
 from src.predict import predict_for_iceberg_horizon
 from src.output_writer import write_predictions_csv, write_predictions_json
@@ -61,6 +61,8 @@ def run(config_path: str = "config/config.yaml") -> dict:
         try:
             bundle = train_horizon_models(table, feature_columns, config, horizon_hours=h)
             model_bundles[h] = bundle
+            models_dir = config.get("outputs", {}).get("models_dir", "models")
+            save_model_bundle(bundle, models_dir)
             metrics = evaluate_by_horizon(bundle["val_predictions"], horizons=[h])
             validation_metrics.update(metrics)
             logger.info("Horizon %sh trained (%s): n_train=%d n_val=%d MAE=%.3fkm RMSE=%.3fkm",

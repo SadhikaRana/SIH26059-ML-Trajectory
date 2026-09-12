@@ -114,6 +114,7 @@ outputs:
   metrics_path: "outputs/metrics/metrics_environmental.json"
   plots_dir: "outputs/plots"
   profiling_report_path: "outputs/metrics/dataset_profile_report_environmental.txt"
+  models_dir: "models/environmental"
 
 # -----------------------------------------------------------------------------
 # LOGGING

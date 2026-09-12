@@ -23,8 +23,10 @@ produce an absolute predicted_latitude/predicted_longitude.
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Optional
 
+import joblib
 import numpy as np
 import pandas as pd
 
@@ -131,4 +133,63 @@ def train_horizon_models(
         "n_val": len(val_df),
         "model_backend": _MODEL_BACKEND,
         "val_predictions": val_predictions,
+    }
+
+
+def save_model_bundle(bundle: dict, models_dir: str | Path) -> Path:
+    """
+    Persist a trained horizon bundle to disk so it can be reloaded and
+    used for inference WITHOUT retraining (src/infer.py is the intended
+    caller-side entry point). Saves model_lat, model_lon, and the
+    metadata needed to reproduce predictions identically (feature column
+    order/names, horizon, and which backend trained it).
+
+    Does not save `val_predictions` (large, and not needed for
+    inference) - only what inference actually requires.
+    """
+    horizon = bundle["horizon_hours"]
+    out_dir = Path(models_dir) / f"horizon_{horizon}h"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    joblib.dump(bundle["model_lat"], out_dir / "model_lat.joblib")
+    joblib.dump(bundle["model_lon"], out_dir / "model_lon.joblib")
+    joblib.dump(
+        {
+            "feature_columns": bundle["feature_columns"],
+            "horizon_hours": bundle["horizon_hours"],
+            "n_train": bundle["n_train"],
+            "n_val": bundle["n_val"],
+            "model_backend": bundle["model_backend"],
+        },
+        out_dir / "metadata.joblib",
+    )
+    logger.info("Saved horizon %sh model bundle to %s", horizon, out_dir)
+    return out_dir
+
+
+def load_model_bundle(models_dir: str | Path, horizon_hours: int) -> Optional[dict]:
+    """
+    Load a previously saved horizon bundle for inference. Returns None
+    (never a fabricated/empty model) if no saved bundle exists for this
+    horizon - callers (predict.py via infer.py) must then fall back to
+    the baseline, exactly as during training-time prediction.
+    """
+    in_dir = Path(models_dir) / f"horizon_{horizon_hours}h"
+    metadata_path = in_dir / "metadata.joblib"
+    if not metadata_path.exists():
+        return None
+
+    metadata = joblib.load(metadata_path)
+    model_lat = joblib.load(in_dir / "model_lat.joblib")
+    model_lon = joblib.load(in_dir / "model_lon.joblib")
+
+    return {
+        "model_lat": model_lat,
+        "model_lon": model_lon,
+        "feature_columns": metadata["feature_columns"],
+        "horizon_hours": metadata["horizon_hours"],
+        "n_train": metadata["n_train"],
+        "n_val": metadata["n_val"],
+        "model_backend": metadata["model_backend"],
+        "val_predictions": None,  # not persisted - not needed for inference
     }
