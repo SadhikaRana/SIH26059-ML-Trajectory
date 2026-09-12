@@ -1,0 +1,100 @@
+
+# SIH26059 - Iceberg Trajectory Prediction - Configuration
+
+# IMPORTANT: The column names below are PLACEHOLDERS. The real dataset from
+# Person 5 has not been delivered yet. Once it arrives, inspect its actual
+# schema (see README.md -> "How to configure the dataset") and update the
+# `columns` / `environmental` sections below to match the REAL column names.
+#
+# Nothing in this pipeline assumes these placeholder names are correct.
+
+
+data:
+  # Directory the loader will search for input files. Do not hardcode a
+  # specific filename with an absolute path - the loader auto-discovers
+  # supported files here, or you can point directly at one file.
+  raw_dir: "data/raw"
+  interim_dir: "data/interim"
+  processed_dir: "data/processed"
+
+  # Optional: set this to a specific filename inside raw_dir once known.
+  # Leave null to let the loader auto-discover a single supported file.
+  input_filename: null
+
+  # Supported extensions the loader will accept, in order of preference
+  # if multiple candidate files exist.
+  supported_extensions: [".csv", ".parquet", ".xlsx", ".xls"]
+
+# -----------------------------------------------------------------------------
+# CORE REQUIRED COLUMNS
+# -----------------------------------------------------------------------------
+# These four fields MUST exist (under some name) for any trajectory work.
+# Map the logical name (left, do not change) to the actual dataset column
+# name (right, EDIT this once the real dataset is known).
+columns:
+  iceberg_id: "iceberg_id"
+  timestamp: "date"
+  latitude: "latitude"
+  longitude: "longitude"
+
+# -----------------------------------------------------------------------------
+# OPTIONAL ENVIRONMENTAL / CHARACTERISTIC COLUMNS
+# -----------------------------------------------------------------------------
+# These may or may not exist in the real dataset. The pipeline checks
+# availability at runtime rather than assuming presence. Set a value to null
+# (or remove the line) if you know a given field will never be available.
+environmental:
+  wind_u: "wind_u"
+  wind_v: "wind_v"
+  current_u: "current_u"
+  current_v: "current_v"
+  sea_ice_concentration: "sea_ice_concentration"
+
+iceberg_characteristics:
+  area: "area"
+  length: "length"
+  width: "width"
+
+# -----------------------------------------------------------------------------
+# VALIDATION THRESHOLDS
+# -----------------------------------------------------------------------------
+validation:
+  latitude_range: [-90, 90]
+  longitude_range: [-180, 180]
+  # Minimum number of observations an iceberg needs to even be considered
+  # for future trajectory prediction (not a guarantee it will support all
+  # horizons - that depends on temporal resolution, checked separately).
+  min_observations_per_iceberg: 3
+
+# -----------------------------------------------------------------------------
+# PREDICTION CONFIGURATION
+# -----------------------------------------------------------------------------
+prediction:
+  horizons_hours: [6, 12, 24, 48]
+  # Tolerance (in hours) used ONLY for reporting whether a horizon is
+  # plausibly supportable by the data's temporal resolution. This does NOT
+  # create or interpolate ground truth - it is purely diagnostic.
+  horizon_feasibility_tolerance_hours: 1.0
+
+# -----------------------------------------------------------------------------
+# MODEL CONFIGURATION (placeholders only - not used in Phase 1)
+# -----------------------------------------------------------------------------
+model:
+  primary: "xgboost"
+  secondary: "lstm"  # optional, not prioritized per project instructions
+  random_state: 42
+
+# -----------------------------------------------------------------------------
+# OUTPUT PATHS
+# -----------------------------------------------------------------------------
+outputs:
+  prediction_path: "outputs/predictions/trajectory_predictions.csv"
+  metrics_path: "outputs/metrics/metrics.json"
+  plots_dir: "outputs/plots"
+  profiling_report_path: "outputs/metrics/dataset_profile_report.txt"
+
+# -----------------------------------------------------------------------------
+# LOGGING
+# -----------------------------------------------------------------------------
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR

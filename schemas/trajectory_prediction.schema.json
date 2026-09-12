@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SIH26059 Trajectory Prediction Output",
+  "description": "Canonical output schema produced by src/output_writer.py::build_json_structure and written by write_predictions_json. One array element per (iceberg_id, prediction_timestamp) group.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["iceberg_id", "prediction_timestamp", "predictions"],
+    "additionalProperties": false,
+    "properties": {
+      "iceberg_id": {
+        "type": "string",
+        "description": "Identifier matching the input dataset's iceberg_id (or its configured column mapping)."
+      },
+      "prediction_timestamp": {
+        "type": ["string", "null"],
+        "format": "date-time",
+        "description": "ISO 8601 timestamp of the most recent real observation this prediction was made from. Null only if the source timestamp itself was invalid/missing (NaT)."
+      },
+      "predictions": {
+        "type": "array",
+        "description": "One entry per configured prediction horizon for this iceberg's latest observation.",
+        "items": {
+          "type": "object",
+          "required": ["horizon_hours", "predicted_latitude", "predicted_longitude", "uncertainty_km"],
+          "additionalProperties": false,
+          "properties": {
+            "horizon_hours": {
+              "type": ["integer", "null"],
+              "description": "Hours ahead of prediction_timestamp this entry predicts. One of the values in config.yaml -> prediction.horizons_hours (currently 6, 12, 24, 48)."
+            },
+            "predicted_latitude": {
+              "type": ["number", "null"],
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Predicted latitude in degrees. Null if this horizon is unsupported for this iceberg (no trained model and no real movement history for the dead-reckoning baseline) - never a fabricated value."
+            },
+            "predicted_longitude": {
+              "type": ["number", "null"],
+              "minimum": -180,
+              "maximum": 180,
+              "description": "Predicted longitude in degrees. Null under the same condition as predicted_latitude."
+            },
+            "uncertainty_km": {
+              "type": ["number", "null"],
+              "minimum": 0,
+              "description": "Empirical uncertainty (kilometres) derived from real held-out validation error at this horizon (see uncertainty.method in config.yaml, default RMSE). Null whenever no real validation has been performed yet for this horizon - this is the expected state before Person 5's dataset is validated against, not an error."
+            }
+          }
+        }
+      }
+    }
+  }
+}

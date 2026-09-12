@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+*.ipynb_checkpoints
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Data - do NOT commit real datasets or generated data artifacts
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Models
+models/*
+!models/.gitkeep
+*.pkl
+*.joblib
+*.json.bak
+
+# Outputs (generated - not source of truth)
+outputs/predictions/*
+!outputs/predictions/.gitkeep
+outputs/metrics/*
+!outputs/metrics/.gitkeep
+outputs/plots/*
+!outputs/plots/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
