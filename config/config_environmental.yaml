@@ -22,7 +22,7 @@ data:
   # Set explicitly because data/raw/ now contains two real files: the
   # original historical dataset and the historical+wind merge - both are
   # real, kept side by side rather than overwritten.
-  input_filename: "historical_iceberg_standardized.csv"
+  input_filename: "historical_iceberg_with_wind.csv"
 
   # Supported extensions the loader will accept, in order of preference
   # if multiple candidate files exist.
@@ -53,8 +53,8 @@ environmental:
   # data/raw/historical_iceberg_with_wind.csv. NaN elsewhere, never
   # imputed. current_u/current_v/sea_ice_concentration are set to null
   # below because no real source for them has been provided.
-  wind_u: null
-  wind_v: null
+  wind_u: "wind_u"
+  wind_v: "wind_v"
   current_u: null
   current_v: null
   sea_ice_concentration: null
@@ -110,10 +110,10 @@ training:
 # OUTPUT PATHS
 # -----------------------------------------------------------------------------
 outputs:
-  prediction_path: "outputs/predictions/trajectory_predictions.csv"
-  metrics_path: "outputs/metrics/metrics.json"
+  prediction_path: "outputs/predictions/trajectory_predictions_environmental.csv"
+  metrics_path: "outputs/metrics/metrics_environmental.json"
   plots_dir: "outputs/plots"
-  profiling_report_path: "outputs/metrics/dataset_profile_report.txt"
+  profiling_report_path: "outputs/metrics/dataset_profile_report_environmental.txt"
 
 # -----------------------------------------------------------------------------
 # LOGGING
